@@ -1,6 +1,7 @@
 const axios = require("axios");
 
 const BLACKHAWKS_ID = 16;
+const CHAR_BEFORE_STATS = 17;
 
 const baseURL = `https://statsapi.web.nhl.com/api/v1`;
 
@@ -111,6 +112,7 @@ const getPlayerStats = async (player) => {
 };
 
 fixDecimal = (number) => (Math.round(number * 100) / 100).toFixed(2);
+noDecimal = (number) => (Math.round(number * 100) / 100).toFixed(0);
 
 formatResponse = (data, player) => {
   if (player.position.type === "Goalie") {
@@ -119,12 +121,12 @@ formatResponse = (data, player) => {
   const stats = data.stat;
   const season = `${data.season.substring(0, 4)}-${data.season.substring(4)}`;
   console.log(`----- ${player.person.fullName} ${season} -----`);
-  console.log(`Goals:         ${stats.goals}`);
-  console.log(`Assists:       ${stats.assists}`);
-  console.log(`Points:        ${stats.points}`);
-  console.log(`Games:         ${stats.games}`);
-  console.log(`PPG:           ${fixDecimal(stats.points / stats.games)}`);
-  console.log(`+/-:           ${stats.plusMinus}`);
+  p(`Goals`, stats.goals);
+  p(`Assists`, stats.assists);
+  p(`Points`, stats.points);
+  p(`Games`, stats.games);
+  p(`PPG`, fixDecimal(stats.points / stats.games));
+  p(`+/-`, stats.plusMinus);
   formatExpandedResponse(stats);
 };
 
@@ -133,42 +135,43 @@ const formatExpandedResponse = (stats) => {
     return;
   }
 
-  console.log(`PIM:           ${stats.pim}`);
-  console.log(`Hits:          ${stats.hits}`);
-  console.log(`Blocks:        ${stats.blocked}`);
-  console.log(`Shots:         ${stats.shots}`);
-  console.log(`Shooting %:    ${fixDecimal(stats.goals / stats.shots)}`);
-  console.log(`PP Goals:      ${stats.powerPlayGoals}`);
-  console.log(`PP Points:     ${stats.powerPlayPoints}`);
-  console.log(`PK Goals:      ${stats.shortHandedGoals}`);
-  console.log(`PK Points:     ${stats.shortHandedPoints}`);
-  console.log(
-    `5v5 Points:    ${
-      stats.points - (stats.shortHandedPoints + stats.powerPlayPoints)
-    }`
+  p(`PIM`, stats.pim);
+  p(`Hits`, stats.hits);
+  p(`Blocks`, stats.blocked);
+  p(`Shots`, stats.shots);
+  p(`Shooting %`, fixDecimal(stats.goals / stats.shots));
+  p(`PP Goals`, stats.powerPlayGoals);
+  p(`PP Points`, stats.powerPlayPoints);
+  p(`PK Goals`, stats.shortHandedGoals);
+  p(`PK Points`, stats.shortHandedPoints);
+  p(
+    `5v5 Points`,
+    stats.points - (stats.shortHandedPoints + stats.powerPlayPoints)
   );
-  console.log(`Shifts:        ${stats.shifts}`);
+  p(`Shifts`, stats.shifts);
 
-  console.log(`TOI:           ${stats.timeOnIce}`);
-  console.log(`5v5 TOI:       ${stats.evenTimeOnIce}`);
-  console.log(`PP TOI:        ${stats.powerPlayTimeOnIce}`);
-  console.log(`PK TOI:        ${stats.shortHandedTimeOnIce}`);
-  console.log(`Avg TOI:       ${stats.timeOnIcePerGame}`);
-  console.log(`Avg 5v5 TOI:   ${stats.evenTimeOnIcePerGame}`);
-  console.log(`Avg PP TOI:    ${stats.powerPlayTimeOnIcePerGame}`);
-  console.log(`Avg PK TOI:    ${stats.shortHandedTimeOnIcePerGame}`);
+  p(`TOI`, stats.timeOnIce);
+  p(`5v5 TOI`, stats.evenTimeOnIce);
+  p(`PP TOI`, stats.powerPlayTimeOnIce);
+  p(`PK TOI`, stats.shortHandedTimeOnIce);
+  p(`Avg TOI`, stats.timeOnIcePerGame);
+  p(`Avg 5v5 TOI`, stats.evenTimeOnIcePerGame);
+  p(`Avg PP TOI`, stats.powerPlayTimeOnIcePerGame);
+  p(`Avg PK TOI`, stats.shortHandedTimeOnIcePerGame);
 };
 
 const formatGoalieResponse = (data, player) => {
   const stats = data.stat;
   const season = `${data.season.substring(0, 4)}-${data.season.substring(4)}`;
   console.log(`----- ${player.person.fullName} ${season} -----`);
-  console.log(`Wins:          ${stats.wins}`);
-  console.log(`Losses:        ${stats.losses}`);
-  console.log(`Games:         ${stats.games}`);
-  console.log(`Save %:        ${stats.savePercentage}`);
-  console.log(`GAA:           ${stats.goalAgainstAverage}`);
-  console.log(`Shutouts:      ${stats.shutouts}`);
+  p(`Wins`, stats.wins);
+  p(`Losses`, stats.losses);
+  p(`OT Losses`, stats.ot);
+  stats.ties ? p(`Ties`, stats.ties) : null;
+  p(`Games`, stats.games);
+  p(`Save %`, stats.savePercentage);
+  p(`GAA`, stats.goalAgainstAverage);
+  p(`Shutouts`, stats.shutouts);
   formatExpandedGoalieResponse(stats);
 };
 
@@ -176,8 +179,25 @@ formatExpandedGoalieResponse = (stats) => {
   if (!expandedArg) {
     return;
   }
+
+  p(`Saves`, stats.saves);
+  p(`Goals Against`, stats.goalsAgainst);
+  p(`Shots Faced`, stats.shotsAgainst);
+  p(`PP Saves`, stats.powerPlaySaves);
+  p(`PK Saves`, stats.shortHandedSaves);
+  p(`5v5 Saves`, stats.evenSaves);
+  p(`PP Save %`, `0.${noDecimal(stats.powerPlaySavePercentage * 10)}`);
+  p(`PK Save %`, `0.${noDecimal(stats.shortHandedSavePercentage * 10)}`);
+  p(`5v5 Save %`, `0.${noDecimal(stats.evenStrengthSavePercentage * 10)}`);
+  p(`Started`, stats.gamesStarted);
 };
 
 const error = () => console.log("Connection error. Try again");
+
+const p = (statName, stat) => {
+  const spaceCount = CHAR_BEFORE_STATS - (statName.length + 1);
+  let spaces = " ".repeat(spaceCount > 0 ? spaceCount : 1);
+  console.log(`${statName}:${spaces}${stat}`);
+};
 
 main();
