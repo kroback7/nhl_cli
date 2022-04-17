@@ -4,17 +4,22 @@ const BLACKHAWKS_ID = 16;
 
 const baseURL = `https://statsapi.web.nhl.com/api/v1`;
 
-const playerArg =
+const playerIndex =
   process.argv.indexOf("-player") > -1
-    ? process.argv[process.argv.indexOf("-player") + 1].toLowerCase()
-    : null;
+    ? process.argv.indexOf("-player")
+    : process.argv.indexOf("-p");
+const playerArg =
+  playerIndex > -1 ? process.argv[playerIndex + 1].toLowerCase() : null;
 
-const teamArg =
+const teamIndex =
   process.argv.indexOf("-team") > -1
-    ? process.argv[process.argv.indexOf("-team") + 1].toLowerCase()
-    : null;
+    ? process.argv.indexOf("-team")
+    : process.argv.indexOf("-t");
+const teamArg = teamIndex ? process.argv[teamIndex + 1].toLowerCase() : null;
 
 const expandedArg = process.argv.indexOf("--expanded") > -1 ? true : false;
+
+const ploffsArg = process.argv.indexOf("--playoffs") > -1 ? true : false;
 
 const onPaceArg = process.argv.indexOf("--onpace") > -1 ? true : false;
 
@@ -77,6 +82,8 @@ const getPlayerStats = async (player) => {
   let params = {};
   if (onPaceArg) {
     params.stats = "onPaceRegularSeason";
+  } else if (ploffsArg) {
+    params.stats = "statsSingleSeasonPlayoffs";
   } else {
     params.stats = "statsSingleSeason";
   }
@@ -89,23 +96,46 @@ const getPlayerStats = async (player) => {
   axios
     .get(`${baseURL}/people/${playerId}/stats`, { params: params })
     .then((response) => {
-      const raw = response.data.stats[0].splits[0];
-      formatResponse(raw, player);
+      if (
+        response.data &&
+        response.data.stats.length > 0 &&
+        response.data.stats[0].splits.length > 0
+      ) {
+        const raw = response.data.stats[0].splits[0];
+        formatResponse(raw, player);
+      } else {
+        console.log(`No stats for ${params.season}`);
+      }
     });
 };
 
 fixDecimal = (number) => (Math.round(number * 100) / 100).toFixed(2);
 
 formatResponse = (data, player) => {
+  if (player.position.type === "Goalie") {
+    return formatGoalieResponse(data, player);
+  }
   const stats = data.stat;
   const season = `${data.season.substring(0, 4)}-${data.season.substring(4)}`;
   console.log(`----- ${player.person.fullName} ${season} -----`);
-  console.log(`Goals:       ${stats.goals}`);
-  console.log(`Assists:     ${stats.assists}`);
-  console.log(`Points:      ${stats.points}`);
-  console.log(`Games:       ${stats.games}`);
-  console.log(`PPG:         ${fixDecimal(stats.points / stats.games)}`);
-  console.log(`+/-:         ${stats.plusMinus}`);
+  console.log(`Goals:         ${stats.goals}`);
+  console.log(`Assists:       ${stats.assists}`);
+  console.log(`Points:        ${stats.points}`);
+  console.log(`Games:         ${stats.games}`);
+  console.log(`PPG:           ${fixDecimal(stats.points / stats.games)}`);
+  console.log(`+/-:           ${stats.plusMinus}`);
+};
+
+formatGoalieResponse = (data, player) => {
+  const stats = data.stat;
+  const season = `${data.season.substring(0, 4)}-${data.season.substring(4)}`;
+  console.log(`----- ${player.person.fullName} ${season} -----`);
+  console.log(`Wins:          ${stats.wins}`);
+  console.log(`Losses:        ${stats.losses}`);
+  console.log(`Games:         ${stats.games}`);
+  console.log(`Save %:        ${stats.savePercentage}`);
+  console.log(`GAA:           ${stats.goalAgainstAverage}`);
+  console.log(`Shutouts:      ${stats.shutouts}`);
 };
 
 const error = () => console.log("Connection error. Try again");
