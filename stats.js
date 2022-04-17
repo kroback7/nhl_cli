@@ -23,6 +23,8 @@ const ploffsArg = process.argv.indexOf("--playoffs") > -1 ? true : false;
 
 const onPaceArg = process.argv.indexOf("--onpace") > -1 ? true : false;
 
+const helpArg = process.argv.indexOf("--help") > -1 ? true : false;
+
 const yearArg =
   process.argv.indexOf("-year") > -1
     ? process.argv[process.argv.indexOf("-year") + 1]
@@ -52,7 +54,6 @@ const getTeamId = async () => {
   } else {
     error();
   }
-  console.log(response.data);
 };
 
 const getPlayer = async (teamId) => {
@@ -124,9 +125,41 @@ formatResponse = (data, player) => {
   console.log(`Games:         ${stats.games}`);
   console.log(`PPG:           ${fixDecimal(stats.points / stats.games)}`);
   console.log(`+/-:           ${stats.plusMinus}`);
+  formatExpandedResponse(stats);
 };
 
-formatGoalieResponse = (data, player) => {
+const formatExpandedResponse = (stats) => {
+  if (!expandedArg) {
+    return;
+  }
+
+  console.log(`PIM:           ${stats.pim}`);
+  console.log(`Hits:          ${stats.hits}`);
+  console.log(`Blocks:        ${stats.blocked}`);
+  console.log(`Shots:         ${stats.shots}`);
+  console.log(`Shooting %:    ${fixDecimal(stats.goals / stats.shots)}`);
+  console.log(`PP Goals:      ${stats.powerPlayGoals}`);
+  console.log(`PP Points:     ${stats.powerPlayPoints}`);
+  console.log(`PK Goals:      ${stats.shortHandedGoals}`);
+  console.log(`PK Points:     ${stats.shortHandedPoints}`);
+  console.log(
+    `5v5 Points:    ${
+      stats.points - (stats.shortHandedPoints + stats.powerPlayPoints)
+    }`
+  );
+  console.log(`Shifts:        ${stats.shifts}`);
+
+  console.log(`TOI:           ${stats.timeOnIce}`);
+  console.log(`5v5 TOI:       ${stats.evenTimeOnIce}`);
+  console.log(`PP TOI:        ${stats.powerPlayTimeOnIce}`);
+  console.log(`PK TOI:        ${stats.shortHandedTimeOnIce}`);
+  console.log(`Avg TOI:       ${stats.timeOnIcePerGame}`);
+  console.log(`Avg 5v5 TOI:   ${stats.evenTimeOnIcePerGame}`);
+  console.log(`Avg PP TOI:    ${stats.powerPlayTimeOnIcePerGame}`);
+  console.log(`Avg PK TOI:    ${stats.shortHandedTimeOnIcePerGame}`);
+};
+
+const formatGoalieResponse = (data, player) => {
   const stats = data.stat;
   const season = `${data.season.substring(0, 4)}-${data.season.substring(4)}`;
   console.log(`----- ${player.person.fullName} ${season} -----`);
@@ -136,6 +169,13 @@ formatGoalieResponse = (data, player) => {
   console.log(`Save %:        ${stats.savePercentage}`);
   console.log(`GAA:           ${stats.goalAgainstAverage}`);
   console.log(`Shutouts:      ${stats.shutouts}`);
+  formatExpandedGoalieResponse(stats);
+};
+
+formatExpandedGoalieResponse = (stats) => {
+  if (!expandedArg) {
+    return;
+  }
 };
 
 const error = () => console.log("Connection error. Try again");
