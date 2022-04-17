@@ -18,13 +18,14 @@ const teamIndex =
     : process.argv.indexOf("-t");
 const teamArg = teamIndex ? process.argv[teamIndex + 1].toLowerCase() : null;
 
-const expandedArg = process.argv.indexOf("--expanded") > -1 ? true : false;
+const expandedArg =
+  process.argv.indexOf("--expanded") > -1 || process.argv.indexOf("--e") > -1;
 
-const ploffsArg = process.argv.indexOf("--playoffs") > -1 ? true : false;
+const ploffsArg = process.argv.indexOf("--playoffs") > -1;
 
-const onPaceArg = process.argv.indexOf("--onpace") > -1 ? true : false;
+const onPaceArg = process.argv.indexOf("--onpace") > -1;
 
-const helpArg = process.argv.indexOf("--help") > -1 ? true : false;
+const helpArg = process.argv.indexOf("--help") > -1;
 
 const yearArg =
   process.argv.indexOf("-year") > -1
