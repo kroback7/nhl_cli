@@ -121,7 +121,7 @@ formatResponse = (data, player) => {
   }
   const stats = data.stat;
   const season = `${data.season.substring(0, 4)}-${data.season.substring(4)}`;
-  console.log(`----- ${player.person.fullName} ${season} -----`);
+  printHeader(player, season);
   p(`Goals`, stats.goals);
   p(`Assists`, stats.assists);
   p(`Points`, stats.points);
@@ -164,7 +164,7 @@ const formatExpandedResponse = (stats) => {
 const formatGoalieResponse = (data, player) => {
   const stats = data.stat;
   const season = `${data.season.substring(0, 4)}-${data.season.substring(4)}`;
-  console.log(`----- ${player.person.fullName} ${season} -----`);
+  printHeader(player, season);
   p(`Wins`, stats.wins);
   p(`Losses`, stats.losses);
   p(`OT Losses`, stats.ot);
@@ -199,6 +199,12 @@ const p = (statName, stat) => {
   const spaceCount = CHAR_BEFORE_STATS - (statName.length + 1);
   let spaces = " ".repeat(spaceCount > 0 ? spaceCount : 1);
   console.log(`${statName}:${spaces}${stat}`);
+};
+
+const printHeader = (player, season) => {
+  console.log(
+    `----- ${player.person.fullName} ${player.jerseyNumber} (${player.position.abbreviation}) ${season} -----`
+  );
 };
 
 main();
