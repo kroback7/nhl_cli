@@ -14,8 +14,8 @@ CLI for getting NHL stats. Currently supports retrieving stats for one player at
 
 ### Arguments
 
-- `-team [team]` or `-t [team]`: Team player is on (*required).
 - `-player [player]` or `-p [player]`: Player (*required).
+- `-team [team]` or `-t [team]`: Team player is on.
 - `-year [year]`: Stats for a previous season. Ex: 20152016
 - `--onpace`: On-pace stats. Only works for current regular season.
 - `--expanded` or `--e`: Show more detailed stats.

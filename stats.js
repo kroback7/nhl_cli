@@ -1,6 +1,5 @@
 const axios = require("axios");
 
-const BLACKHAWKS_ID = 16;
 const CHAR_BEFORE_STATS = 17;
 
 const baseURL = `https://statsapi.web.nhl.com/api/v1`;
@@ -16,7 +15,8 @@ const teamIndex =
   process.argv.indexOf("-team") > -1
     ? process.argv.indexOf("-team")
     : process.argv.indexOf("-t");
-const teamArg = teamIndex ? process.argv[teamIndex + 1].toLowerCase() : null;
+const teamArg =
+  teamIndex > -1 ? process.argv[teamIndex + 1].toLowerCase() : null;
 
 const expandedArg =
   process.argv.indexOf("--expanded") > -1 || process.argv.indexOf("--e") > -1;
@@ -40,7 +40,7 @@ const main = async () => {
 
 const getTeamId = async () => {
   if (!teamArg) {
-    return BLACKHAWKS_ID;
+    return null;
   }
 
   const response = await axios.get(`${baseURL}/teams`);
@@ -60,19 +60,55 @@ const getTeamId = async () => {
 
 const getPlayer = async (teamId) => {
   if (!teamId) {
-    console.log("Couldn't find team!");
-    return null;
-  }
+    if (teamArg) {
+      console.log("Couldn't find team!");
+      return null;
+    }
 
-  const response = await axios.get(`${baseURL}/teams/${teamId}/roster`);
+    let params = {};
+    params.expand = "team.roster";
+    if (yearArg) {
+      params.season = yearArg;
+    }
 
-  if (response && response.data && response.data.roster) {
-    const player = response.data.roster.find((player) =>
-      player.person.fullName.toLowerCase().includes(playerArg)
-    );
-    return player;
+    const response = await axios.get(`${baseURL}/teams`, {
+      params: params,
+    });
+
+    let player = null;
+    if (response && response.data && response.data.teams) {
+      response.data.teams.every((team) => {
+        const playerSearch = team.roster.roster.find((player) =>
+          player.person.fullName.toLowerCase().includes(playerArg)
+        );
+        if (playerSearch) {
+          player = playerSearch;
+          return false; // break loop
+        }
+      });
+      return player;
+    } else {
+      error();
+    }
   } else {
-    error();
+    console.log(teamId);
+    console.log("awooga");
+    let params = {};
+    if (yearArg) {
+      params.season = yearArg;
+    }
+    const response = await axios.get(`${baseURL}/teams/${teamId}/roster`, {
+      params: params,
+    });
+
+    if (response && response.data && response.data.roster) {
+      const player = response.data.roster.find((player) =>
+        player.person.fullName.toLowerCase().includes(playerArg)
+      );
+      return player;
+    } else {
+      error();
+    }
   }
 };
 
@@ -135,7 +171,6 @@ const formatExpandedResponse = (stats) => {
   if (!expandedArg) {
     return;
   }
-
   p(`PIM`, stats.pim);
   p(`Hits`, stats.hits);
   p(`Blocks`, stats.blocked);
@@ -196,9 +231,11 @@ formatExpandedGoalieResponse = (stats) => {
 const error = () => console.log("Connection error. Try again");
 
 const p = (statName, stat) => {
-  const spaceCount = CHAR_BEFORE_STATS - (statName.length + 1);
-  let spaces = " ".repeat(spaceCount > 0 ? spaceCount : 1);
-  console.log(`${statName}:${spaces}${stat}`);
+  if (stat) {
+    const spaceCount = CHAR_BEFORE_STATS - (statName.length + 1);
+    let spaces = " ".repeat(spaceCount > 0 ? spaceCount : 1);
+    console.log(`${statName}:${spaces}${stat}`);
+  }
 };
 
 const printHeader = (player, season) => {
