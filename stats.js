@@ -9,7 +9,9 @@ const playerIndex =
     ? process.argv.indexOf("-player")
     : process.argv.indexOf("-p");
 const playerArg =
-  playerIndex > -1 ? process.argv[playerIndex + 1].toLowerCase() : null;
+  playerIndex > -1
+    ? process.argv[playerIndex + 1].toLowerCase()
+    : process.argv[1].toLowerCase();
 
 const teamIndex =
   process.argv.indexOf("-team") > -1
@@ -91,8 +93,6 @@ const getPlayer = async (teamId) => {
       error();
     }
   } else {
-    console.log(teamId);
-    console.log("awooga");
     let params = {};
     if (yearArg) {
       params.season = yearArg;
